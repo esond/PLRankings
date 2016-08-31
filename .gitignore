@@ -37,4 +37,5 @@ Icon
 
 PLRankings/PLRankings/bin/
 PLRankings/PLRankings/obj/
-*.suo
+PLRankings/.vs/
+PLRankings/.vs/PLRankings/v14/.suo
