@@ -35,3 +35,7 @@ Icon
 .Spotlight-V100
 .Trashes
 
+PLRankings/PLRankings/bin/
+PLRankings/PLRankings/obj/
+PLRankings/.vs/PLRankings/v14/.suo
+*.suo
