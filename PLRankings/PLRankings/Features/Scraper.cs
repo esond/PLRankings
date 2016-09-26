@@ -14,7 +14,7 @@ namespace PLRankings.Features
 {
     public static class Scraper
     {
-        public static void CreateRanking(string outputFile, DateTime seasonStartDate, DateTime seasonEndDate, params string[] resultsUris)
+        public static void CreateRanking(string outputFile, DateTime seasonStartDate, DateTime seasonEndDate, IEnumerable<string> resultsUris)
         {
             string resultsString = string.Empty;
 
@@ -25,6 +25,9 @@ namespace PLRankings.Features
                 int indexOfFirstResult = raw.IndexOf("<TR bgColor=\"WHITE\">", StringComparison.Ordinal);
                 int indexOfResultsEnd = raw.IndexOf("</TABLE>", StringComparison.Ordinal);
 
+                if (indexOfFirstResult == -1)
+                    continue;
+
                 resultsString += raw.Substring(indexOfFirstResult, indexOfResultsEnd - indexOfFirstResult);
             }
 
@@ -32,11 +35,9 @@ namespace PLRankings.Features
 
             List<CompetitionResult> results = new List<CompetitionResult>();
 
-            foreach (
-                CompetitionResult result in
+            foreach (CompetitionResult result in
                 rows.Where(r => !string.IsNullOrEmpty(r))
-                    .Select(BuildResult)
-                    .Where(cr => (cr.Date > seasonStartDate) && (cr.Date <= seasonEndDate))
+                    .Select(BuildResult).Where(cr => (cr.Date > seasonStartDate) && (cr.Date <= seasonEndDate))
                     .OrderByDescending(cr => cr.WilksPoints))
             {
                 CompetitionResult existingResult =
@@ -75,9 +76,8 @@ namespace PLRankings.Features
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                using (
-                    StreamReader reader = new StreamReader(response.GetResponseStream(),
-                        Encoding.GetEncoding(response.CharacterSet)))
+                using (StreamReader reader = new StreamReader(response.GetResponseStream(),
+                    Encoding.GetEncoding(response.CharacterSet)))
                 {
                     return reader.ReadToEnd();
                 }
@@ -105,7 +105,7 @@ namespace PLRankings.Features
             {
                 result.Date = DateTime.ParseExact(tableCells[1], "dd-MMM-yy", CultureInfo.InvariantCulture);
             }
-            catch (Exception)
+            catch (FormatException)
             {
                 result.Date = DateTime.ParseExact(tableCells[1], "d-MMM-yy", CultureInfo.InvariantCulture);
             }
@@ -137,15 +137,23 @@ namespace PLRankings.Features
         {
             FieldInfo[] fields = typeof(T).GetFields();
             PropertyInfo[] properties = typeof(T).GetProperties();
+
             if (header)
             {
-                yield return string.Join(separator, fields.Select(f => f.Name).Concat(properties.Select(p => p.Name)).ToArray());
+                yield return string.Join(separator, fields.Select(f => f.Name.ToDisplayText())
+                    .Concat(properties.Select(p => p.Name.ToDisplayText())).ToArray());
             }
-            foreach (var o in objectlist)
+               
+            foreach (T obj in objectlist)
             {
-                yield return string.Join(separator, fields.Select(f => (f.GetValue(o) ?? "").ToString())
-                    .Concat(properties.Select(p => (p.GetValue(o, null) ?? "").ToString())).ToArray());
+                yield return string.Join(separator, fields.Select(f => (f.GetValue(obj) ?? "").ToString())
+                    .Concat(properties.Select(p => (p.GetValue(obj, null) ?? "").ToString())).ToArray());
             }
+        }
+
+        public static string ToDisplayText(this string str)
+        {
+            return Regex.Replace(str, @"([a-z](?=[A-Z0-9])|[A-Z](?=[A-Z][a-z]))", "$1 ");
         }
     }
 }
