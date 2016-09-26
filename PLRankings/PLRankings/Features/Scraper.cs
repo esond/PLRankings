@@ -12,24 +12,13 @@ using PLRankings.Models;
 
 namespace PLRankings.Features
 {
-    public class Scraper
+    public static class Scraper
     {
-        private readonly string _outputFolder;
-        private readonly DateTime _provincials2015Date = new DateTime(2015, 7, 4);
-        private readonly DateTime _provincials2016Date = new DateTime(2016, 6, 11);
-        private readonly IEnumerable<Uri> _resultsUris;
-
-        public Scraper(string outputFolder, params string[] resultsUris)
-        {
-            _outputFolder = outputFolder;
-            _resultsUris = resultsUris.Select(r => new Uri(r)).ToList();
-        }
-
-        public void GetData()
+        public static void CreateRanking(string outputFile, DateTime seasonStartDate, DateTime seasonEndDate, params string[] resultsUris)
         {
             string resultsString = string.Empty;
 
-            foreach (Uri resultsUri in _resultsUris)
+            foreach (Uri resultsUri in resultsUris.Select(x => new Uri(x)))
             {
                 string raw = GetRawHtml(resultsUri);
 
@@ -47,11 +36,24 @@ namespace PLRankings.Features
                 CompetitionResult result in
                 rows.Where(r => !string.IsNullOrEmpty(r))
                     .Select(BuildResult)
-                    .Where(cr => (cr.Date >= _provincials2015Date) && (cr.Date < _provincials2016Date))
+                    .Where(cr => (cr.Date > seasonStartDate) && (cr.Date <= seasonEndDate))
                     .OrderByDescending(cr => cr.WilksPoints))
             {
-                if (!results.Select(cr => cr.LifterName).Contains(result.LifterName))
+                CompetitionResult existingResult =
+                    results.SingleOrDefault(
+                        cr => cr.LifterName.ToLowerInvariant() == result.LifterName.ToLowerInvariant());
+
+                if (existingResult == null)
+                {
                     results.Add(result);
+                    continue;
+                }
+
+                if (existingResult.WilksPoints < result.WilksPoints)
+                {
+                    results.Remove(existingResult);
+                    results.Add(result);
+                }
             }
 
             IEnumerable<CompetitionResult> orderedResults = results.OrderByDescending(cr => cr.WilksPoints);
@@ -63,10 +65,10 @@ namespace PLRankings.Features
                 builder.AppendLine(line);
             }
 
-            File.WriteAllText(_outputFolder + "document.csv", builder.ToString());
+            File.WriteAllText(outputFile, builder.ToString());
         }
 
-        private string GetRawHtml(Uri resultsUri)
+        private static string GetRawHtml(Uri resultsUri)
         {
             HttpWebRequest request = (HttpWebRequest) WebRequest.Create(resultsUri);
             HttpWebResponse response = (HttpWebResponse) request.GetResponse();
@@ -84,7 +86,7 @@ namespace PLRankings.Features
             throw new HttpException();
         }
 
-        private CompetitionResult BuildResult(string tableRow)
+        private static CompetitionResult BuildResult(string tableRow)
         {
             // 7 is the length of the <FONT> tags.
             int substringStart = tableRow.IndexOf("<FONT >", StringComparison.Ordinal) + 7;
@@ -137,7 +139,7 @@ namespace PLRankings.Features
             PropertyInfo[] properties = typeof(T).GetProperties();
             if (header)
             {
-                yield return String.Join(separator, fields.Select(f => f.Name).Concat(properties.Select(p => p.Name)).ToArray());
+                yield return string.Join(separator, fields.Select(f => f.Name).Concat(properties.Select(p => p.Name)).ToArray());
             }
             foreach (var o in objectlist)
             {

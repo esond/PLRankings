@@ -37,10 +37,5 @@ namespace PLRankings.Models
         public string Year { get; set; }
 
         public bool Unequipped { get; set; }
-
-        public override string ToString()
-        {
-            return $"{LifterName}\t\t{Squat}\t\t{Bench}\t\t{Deadlift} ----- {Total} **{WilksPoints}**";
-        }
     }
 }
