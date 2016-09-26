@@ -6,7 +6,7 @@ namespace PLRankings.Models
     {
         public string ContestName { get; set; }
 
-        public string Date { get; set; }
+        public DateTime Date { get; set; }
 
         public string Location { get; set; }
 
@@ -40,7 +40,7 @@ namespace PLRankings.Models
 
         public override string ToString()
         {
-            return $"{LifterName} - {Squat} - {Bench} - {Deadlift} ----- {Total}";
+            return $"{LifterName}\t\t{Squat}\t\t{Bench}\t\t{Deadlift} ----- {Total} **{WilksPoints}**";
         }
     }
 }
