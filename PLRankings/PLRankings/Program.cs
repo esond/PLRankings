@@ -13,24 +13,30 @@ namespace PLRankings
             DateTime provincials2016Date = new DateTime(2016, 6, 11);
 
             string outputFile = GetOutputFilePath("Men - Open (2015-2016).csv");
-            Scraper.CreateRanking(outputFile, provincials2015Date, provincials2016Date, OpenMenUris);
+            RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, OpenMenUris);
 
             outputFile = GetOutputFilePath("Women - Open (2015-2016).csv");
-            Scraper.CreateRanking(outputFile, provincials2015Date, provincials2016Date, OpenWomenUris);
+            RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, OpenWomenUris);
 
             outputFile = GetOutputFilePath("Men - Junior and Sub-Junior (2015-2016).csv");
-            Scraper.CreateRanking(outputFile, provincials2015Date, provincials2016Date, JuniorMenUris);
+            RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, JuniorMenUris);
 
             outputFile = GetOutputFilePath("Women - Junior and Sub-Junior (2015-2016).csv");
-            Scraper.CreateRanking(outputFile, provincials2015Date, provincials2016Date, JuniorWomenUris);
+            RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, JuniorWomenUris);
 
             outputFile = GetOutputFilePath("Men - Masters (2015-2016).csv");
-            Scraper.CreateRanking(outputFile, provincials2015Date, provincials2016Date, MastersMenUris);
+            RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, MastersMenUris);
 
             outputFile = GetOutputFilePath("Women - Masters (2015-2016).csv");
-            Scraper.CreateRanking(outputFile, provincials2015Date, provincials2016Date, MastersWomenUris);
+            RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, MastersWomenUris);
 
+            //outputFile = GetOutputFilePath("Men - Equipped (2015-2016).csv");
+            //RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, EquippedMenUris);
 
+            //outputFile = GetOutputFilePath("Women - Equipped (2015-2016).csv");
+            //RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, EquippedWomenUris);
+
+            // TODO: Bench press
         }
 
         private static IEnumerable<string> OpenMenUris

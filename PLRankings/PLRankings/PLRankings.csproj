@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Features\RankingGenerator.cs" />
     <Compile Include="Features\Scraper.cs" />
     <Compile Include="Models\CompetitionResult.cs" />
     <Compile Include="Program.cs" />

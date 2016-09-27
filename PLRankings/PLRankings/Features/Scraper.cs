@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -14,7 +13,7 @@ namespace PLRankings.Features
 {
     public static class Scraper
     {
-        public static void CreateRanking(string outputFile, DateTime seasonStartDate, DateTime seasonEndDate, IEnumerable<string> resultsUris)
+        public static IEnumerable<CompetitionResult> GetResults(DateTime seasonStartDate, DateTime seasonEndDate, IEnumerable<string> resultsUris)
         {
             string resultsString = string.Empty;
 
@@ -42,7 +41,7 @@ namespace PLRankings.Features
             {
                 CompetitionResult existingResult =
                     results.SingleOrDefault(
-                        cr => cr.LifterName.ToLowerInvariant() == result.LifterName.ToLowerInvariant());
+                        cr => string.Equals(cr.LifterName, result.LifterName, StringComparison.OrdinalIgnoreCase));
 
                 if (existingResult == null)
                 {
@@ -57,16 +56,7 @@ namespace PLRankings.Features
                 }
             }
 
-            IEnumerable<CompetitionResult> orderedResults = results.OrderByDescending(cr => cr.WilksPoints);
-
-            StringBuilder builder = new StringBuilder();
-
-            foreach (var line in ToCsv(orderedResults))
-            {
-                builder.AppendLine(line);
-            }
-
-            File.WriteAllText(outputFile, builder.ToString());
+            return results;
         }
 
         private static string GetRawHtml(Uri resultsUri)
@@ -109,7 +99,6 @@ namespace PLRankings.Features
             {
                 result.Date = DateTime.ParseExact(tableCells[1], "d-MMM-yy", CultureInfo.InvariantCulture);
             }
-
             
             result.Location = tableCells[2].Replace(",", string.Empty);
             result.ContestType = tableCells[3];
@@ -131,29 +120,6 @@ namespace PLRankings.Features
                 result.Unequipped = true;
 
             return result;
-        }
-
-        public static IEnumerable<string> ToCsv<T>(IEnumerable<T> objectlist, string separator = ",", bool header = true)
-        {
-            FieldInfo[] fields = typeof(T).GetFields();
-            PropertyInfo[] properties = typeof(T).GetProperties();
-
-            if (header)
-            {
-                yield return string.Join(separator, fields.Select(f => f.Name.ToDisplayText())
-                    .Concat(properties.Select(p => p.Name.ToDisplayText())).ToArray());
-            }
-               
-            foreach (T obj in objectlist)
-            {
-                yield return string.Join(separator, fields.Select(f => (f.GetValue(obj) ?? "").ToString())
-                    .Concat(properties.Select(p => (p.GetValue(obj, null) ?? "").ToString())).ToArray());
-            }
-        }
-
-        public static string ToDisplayText(this string str)
-        {
-            return Regex.Replace(str, @"([a-z](?=[A-Z0-9])|[A-Z](?=[A-Z][a-z]))", "$1 ");
         }
     }
 }
