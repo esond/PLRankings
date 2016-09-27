@@ -30,13 +30,12 @@ namespace PLRankings
             outputFile = GetOutputFilePath("Women - Masters (2015-2016).csv");
             RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, MastersWomenUris);
 
+            // TODO: Equipped and Bench-Only
             //outputFile = GetOutputFilePath("Men - Equipped (2015-2016).csv");
             //RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, EquippedMenUris);
 
             //outputFile = GetOutputFilePath("Women - Equipped (2015-2016).csv");
             //RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, EquippedWomenUris);
-
-            // TODO: Bench press
         }
 
         private static IEnumerable<string> OpenMenUris
