@@ -15,9 +15,39 @@ namespace PLRankings.Features
     {
         public static IEnumerable<CompetitionResult> GetResults(DateTime seasonStartDate, DateTime seasonEndDate, IEnumerable<string> resultsUris)
         {
+            IEnumerable<string> rows = GetRows(resultsUris).Where(r => !string.IsNullOrEmpty(r)).ToList();
+
+            IEnumerable<CompetitionResult> seasonResults =
+                rows.Select(BuildResult).Where(cr => (cr.Date > seasonStartDate) && (cr.Date <= seasonEndDate));
+
+            List<CompetitionResult> results = new List<CompetitionResult>();
+
+            foreach (CompetitionResult result in seasonResults.OrderByDescending(cr => cr.WilksPoints))
+            {
+                CompetitionResult existingResult = results.SingleOrDefault(
+                    cr => string.Equals(cr.LifterName, result.LifterName, StringComparison.OrdinalIgnoreCase));
+
+                if (existingResult == null)
+                {
+                    results.Add(result);
+                    continue;
+                }
+
+                if (!(existingResult.WilksPoints < result.WilksPoints))
+                    continue;
+
+                results.Remove(existingResult);
+                results.Add(result);
+            }
+
+            return results;
+        }
+
+        private static string[] GetRows(IEnumerable<string> uris)
+        {
             string resultsString = string.Empty;
 
-            foreach (Uri resultsUri in resultsUris.Select(x => new Uri(x)))
+            foreach (Uri resultsUri in uris.Select(x => new Uri(x)))
             {
                 string raw = GetRawHtml(resultsUri);
 
@@ -30,33 +60,7 @@ namespace PLRankings.Features
                 resultsString += raw.Substring(indexOfFirstResult, indexOfResultsEnd - indexOfFirstResult);
             }
 
-            string[] rows = Regex.Split(resultsString, "\r\n|\r|\n");
-
-            List<CompetitionResult> results = new List<CompetitionResult>();
-
-            foreach (CompetitionResult result in
-                rows.Where(r => !string.IsNullOrEmpty(r))
-                    .Select(BuildResult).Where(cr => (cr.Date > seasonStartDate) && (cr.Date <= seasonEndDate))
-                    .OrderByDescending(cr => cr.WilksPoints))
-            {
-                CompetitionResult existingResult =
-                    results.SingleOrDefault(
-                        cr => string.Equals(cr.LifterName, result.LifterName, StringComparison.OrdinalIgnoreCase));
-
-                if (existingResult == null)
-                {
-                    results.Add(result);
-                    continue;
-                }
-
-                if (existingResult.WilksPoints < result.WilksPoints)
-                {
-                    results.Remove(existingResult);
-                    results.Add(result);
-                }
-            }
-
-            return results;
+            return Regex.Split(resultsString, "\r\n|\r|\n");
         }
 
         private static string GetRawHtml(Uri resultsUri)

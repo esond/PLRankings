@@ -16,11 +16,9 @@ namespace PLRankings.Features
 
             IEnumerable<CompetitionResult> results = Scraper.GetResults(seasonStartDate, seasonEndDate, resultsUris);
 
-            IEnumerable<CompetitionResult> orderedResults = results.OrderByDescending(cr => cr.WilksPoints);
-
             StringBuilder builder = new StringBuilder();
 
-            foreach (var line in SerializationHelper.ToCsv(orderedResults))
+            foreach (string line in SerializationHelper.ToCsv(results.OrderByDescending(r => r.WilksPoints)))
             {
                 builder.AppendLine(line);
             }
