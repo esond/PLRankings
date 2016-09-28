@@ -121,7 +121,7 @@ namespace PLRankings.Features
 
             double deadlift;
             double.TryParse(tableCells[13], out deadlift);
-            result.Squat = squat;
+            result.Deadlift = deadlift;
 
             result.Total = double.Parse(tableCells[14]);
             result.WilksPoints = double.Parse(tableCells[15]);
