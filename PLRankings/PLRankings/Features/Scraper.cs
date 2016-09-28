@@ -13,34 +13,33 @@ namespace PLRankings.Features
 {
     public static class Scraper
     {
-        public static IEnumerable<CompetitionResult> GetResults(DateTime seasonStartDate, DateTime seasonEndDate, IEnumerable<string> resultsUris)
+        public static IEnumerable<CompetitionResult> GetResults(IEnumerable<string> resultsUris)
         {
             IEnumerable<string> rows = GetRows(resultsUris).Where(r => !string.IsNullOrEmpty(r)).ToList();
 
-            IEnumerable<CompetitionResult> seasonResults =
-                rows.Select(BuildResult).Where(cr => (cr.Date > seasonStartDate) && (cr.Date <= seasonEndDate));
+            IEnumerable<CompetitionResult> seasonResults = rows.Select(BuildResult);
 
-            List<CompetitionResult> results = new List<CompetitionResult>();
+            List<CompetitionResult> topResults = new List<CompetitionResult>();
 
             foreach (CompetitionResult result in seasonResults.OrderByDescending(cr => cr.WilksPoints))
             {
-                CompetitionResult existingResult = results.SingleOrDefault(
+                CompetitionResult existingResult = topResults.SingleOrDefault(
                     cr => string.Equals(cr.LifterName, result.LifterName, StringComparison.OrdinalIgnoreCase));
 
                 if (existingResult == null)
                 {
-                    results.Add(result);
+                    topResults.Add(result);
                     continue;
                 }
 
-                if (!(existingResult.WilksPoints < result.WilksPoints))
-                    continue;
-
-                results.Remove(existingResult);
-                results.Add(result);
+                if (existingResult.WilksPoints < result.WilksPoints)
+                {
+                    topResults.Remove(existingResult);
+                    topResults.Add(result);
+                }
             }
 
-            return results;
+            return topResults;
         }
 
         private static string[] GetRows(IEnumerable<string> uris)

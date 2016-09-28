@@ -10,11 +10,11 @@ namespace PLRankings.Features
 {
     public static class RankingGenerator
     {
-        public static void CreateRanking(string outputFile, DateTime seasonStartDate, DateTime seasonEndDate, IEnumerable<string> resultsUris)
+        public static void CreateRanking(string outputFile, IEnumerable<string> resultsUris)
         {
             Console.WriteLine($"Creating ranking {outputFile}...");
 
-            IEnumerable<CompetitionResult> results = Scraper.GetResults(seasonStartDate, seasonEndDate, resultsUris);
+            IEnumerable<CompetitionResult> results = Scraper.GetResults(resultsUris);
 
             StringBuilder builder = new StringBuilder();
 
