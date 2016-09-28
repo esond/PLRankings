@@ -14,7 +14,7 @@ namespace PLRankings
             outputFile = GetOutputFilePath("Women - Open (2016).csv");
             RankingGenerator.CreateRanking(outputFile, ResultsUris.OpenWomen2016);
 
-            outputFile = GetOutputFilePath("Men - Junior and Sub-Junior (22016).csv");
+            outputFile = GetOutputFilePath("Men - Junior and Sub-Junior (2016).csv");
             RankingGenerator.CreateRanking(outputFile, ResultsUris.JuniorMen2016);
 
             outputFile = GetOutputFilePath("Women - Junior and Sub-Junior (2016).csv");
@@ -26,12 +26,11 @@ namespace PLRankings
             outputFile = GetOutputFilePath("Women - Masters (2016).csv");
             RankingGenerator.CreateRanking(outputFile, ResultsUris.MastersWomen2016);
 
-            // TODO: Equipped and Bench-Only
-            //outputFile = GetOutputFilePath("Men - Equipped (2015-2016).csv");
-            //RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, EquippedMenUris);
+            outputFile = GetOutputFilePath("Men - Bench-Only (2016).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.BenchOnlyMen2016);
 
-            //outputFile = GetOutputFilePath("Women - Equipped (2015-2016).csv");
-            //RankingGenerator.CreateRanking(outputFile, provincials2015Date, provincials2016Date, EquippedWomenUris);
+            outputFile = GetOutputFilePath("Women - Bench-Only (2016).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.BenchOnlyWomen2016);
         }
 
         private static string GetOutputFilePath(string fileName)

@@ -73,5 +73,23 @@ namespace PLRankings.Data
                     "http://www.powerlifting.ca/cgi-bin/webdata_cpudb.pl?3+Lift%2FSingle=All&M+%2F+F=F&Prov.=AB&Age+Category=Master+4&BW%2FCl.+=&BW-CL-NEW=&Year=2016&NAME=&Uneq%3F=y&Contest=&cgifunction=Search&pagenum=1&cgisort=17&cgisortorder=1";
             }
         }
+
+        public static IEnumerable<string> BenchOnlyMen2016
+        {
+            get
+            {
+                yield return //2016 Open
+                    "http://www.powerlifting.ca/cgi-bin/webdata_cpudb.pl?3+Lift%2FSingle=Single&M+%2F+F=M&Prov.=AB&Age+Category=&BW%2FCl.+=&BW-CL-NEW=&Year=2016&NAME=&Uneq%3F=y&Contest=&cgifunction=Search&pagenum=1&cgisort=17&cgisortorder=1";
+            }
+        }
+
+        public static IEnumerable<string> BenchOnlyWomen2016
+        {
+            get
+            {
+                yield return //2016 open
+                    "http://www.powerlifting.ca/cgi-bin/webdata_cpudb.pl?3+Lift%2FSingle=Single&M+%2F+F=F&Prov.=AB&Age+Category=&BW%2FCl.+=&BW-CL-NEW=&Year=2016&NAME=&Uneq%3F=y&Contest=&cgifunction=Search&pagenum=1&cgisort=17&cgisortorder=1";
+            }
+        }
     }
 }

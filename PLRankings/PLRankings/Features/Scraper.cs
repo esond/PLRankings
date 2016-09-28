@@ -112,9 +112,17 @@ namespace PLRankings.Features
             // unused column for retired bodyweight classes
             result.Class = tableCells[9];
             result.AgeCategory = tableCells[10];
-            result.Squat = double.Parse(tableCells[11]);
+
+            double squat;
+            double.TryParse(tableCells[11], out squat);
+            result.Squat = squat;
+
             result.Bench = double.Parse(tableCells[12]);
-            result.Deadlift = double.Parse(tableCells[13]);
+
+            double deadlift;
+            double.TryParse(tableCells[13], out deadlift);
+            result.Squat = squat;
+
             result.Total = double.Parse(tableCells[14]);
             result.WilksPoints = double.Parse(tableCells[15]);
             result.Year = tableCells[16];
