@@ -31,6 +31,9 @@ namespace PLRankings
 
             outputFile = GetOutputFilePath("Women - Bench-Only (2016).csv");
             RankingGenerator.CreateRanking(outputFile, ResultsUris.BenchOnlyWomen2016);
+
+            outputFile = GetOutputFilePath("Overall - Equipped (2016).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.EquippedOverall2016, cr => !cr.Unequipped);
         }
 
         private static string GetOutputFilePath(string fileName)

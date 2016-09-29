@@ -91,5 +91,14 @@ namespace PLRankings.Data
                     "http://www.powerlifting.ca/cgi-bin/webdata_cpudb.pl?3+Lift%2FSingle=Single&M+%2F+F=F&Prov.=AB&Age+Category=&BW%2FCl.+=&BW-CL-NEW=&Year=2016&NAME=&Uneq%3F=y&Contest=&cgifunction=Search&pagenum=1&cgisort=17&cgisortorder=1";
             }
         }
+
+        public static IEnumerable<string> EquippedOverall2016
+        {
+            get
+            {
+                yield return
+                    "http://www.powerlifting.ca/cgi-bin/webdata_cpudb.pl?3+Lift%2FSingle=All&M+%2F+F=&Prov.=AB&Age+Category=&BW%2FCl.+=&BW-CL-NEW=&Year=2016&NAME=&Uneq%3F=&Contest=&cgifunction=Search&pagenum=1&cgisort=12&cgisortorder=0";
+            }
+        }
     }
 }
