@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Configuration;
+using System.IO;
+using System.Web.Configuration;
 using PLRankings.Data;
 using PLRankings.Features;
 
@@ -38,7 +40,7 @@ namespace PLRankings
 
         private static string GetOutputFilePath(string fileName)
         {
-            return Path.Combine("C:\\Users\\esond_000\\Desktop\\APU Rankings", fileName);
+            return Path.Combine(ConfigurationManager.AppSettings["outputFilePath"], fileName);
         }
     }
 }
