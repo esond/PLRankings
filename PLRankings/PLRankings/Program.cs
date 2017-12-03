@@ -9,12 +9,12 @@ namespace PLRankings
     {
         public static void Main(string[] args)
         {
-            string path = ConfigurationManager.AppSettings["outputFilePath"];
+            var path = ConfigurationManager.AppSettings["outputFilePath"];
 
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            string outputFile = Path.Combine(path, "Men - Open (2016).csv");
+            var outputFile = Path.Combine(path, "Men - Open (2016).csv");
 
             RankingGenerator.CreateRanking(outputFile, ResultsUris.OpenMen2016);
 

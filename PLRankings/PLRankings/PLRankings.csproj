@@ -43,18 +43,13 @@
     <Compile Include="Data\ResultsUris.cs" />
     <Compile Include="Features\RankingGenerator.cs" />
     <Compile Include="Features\Scraper.cs" />
+    <Compile Include="Features\SerializationHelper.cs" />
     <Compile Include="Models\CompetitionResult.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Flamtap\Flamtap\Flamtap\Flamtap.csproj">
-      <Project>{ed945607-d6b6-4615-b422-020c40837ace}</Project>
-      <Name>Flamtap</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

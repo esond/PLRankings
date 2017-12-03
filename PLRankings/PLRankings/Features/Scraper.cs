@@ -17,13 +17,13 @@ namespace PLRankings.Features
         {
             IEnumerable<string> rows = GetRows(resultsUris).Where(r => !string.IsNullOrEmpty(r)).ToList();
 
-            IEnumerable<CompetitionResult> seasonResults = rows.Select(BuildResult);
+            var seasonResults = rows.Select(BuildResult);
 
-            List<CompetitionResult> topResults = new List<CompetitionResult>();
+            var topResults = new List<CompetitionResult>();
 
-            foreach (CompetitionResult result in seasonResults.OrderByDescending(cr => cr.WilksPoints))
+            foreach (var result in seasonResults.OrderByDescending(cr => cr.WilksPoints))
             {
-                CompetitionResult existingResult = topResults.SingleOrDefault(
+                var existingResult = topResults.SingleOrDefault(
                     cr => string.Equals(cr.LifterName, result.LifterName, StringComparison.OrdinalIgnoreCase));
 
                 if (existingResult == null)
@@ -44,14 +44,14 @@ namespace PLRankings.Features
 
         private static string[] GetRows(IEnumerable<string> uris)
         {
-            string resultsString = string.Empty;
+            var resultsString = string.Empty;
 
-            foreach (Uri resultsUri in uris.Select(x => new Uri(x)))
+            foreach (var resultsUri in uris.Select(x => new Uri(x)))
             {
-                string raw = GetRawHtml(resultsUri);
+                var raw = GetRawHtml(resultsUri);
 
-                int indexOfFirstResult = raw.IndexOf("<TR bgColor=\"WHITE\">", StringComparison.Ordinal);
-                int indexOfResultsEnd = raw.IndexOf("</TABLE>", StringComparison.Ordinal);
+                var indexOfFirstResult = raw.IndexOf("<TR bgColor=\"WHITE\">", StringComparison.Ordinal);
+                var indexOfResultsEnd = raw.IndexOf("</TABLE>", StringComparison.Ordinal);
 
                 if (indexOfFirstResult == -1)
                     continue;
@@ -64,12 +64,12 @@ namespace PLRankings.Features
 
         private static string GetRawHtml(Uri resultsUri)
         {
-            HttpWebRequest request = (HttpWebRequest) WebRequest.Create(resultsUri);
-            HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+            var request = (HttpWebRequest) WebRequest.Create(resultsUri);
+            var response = (HttpWebResponse) request.GetResponse();
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                using (StreamReader reader = new StreamReader(response.GetResponseStream(),
+                using (var reader = new StreamReader(response.GetResponseStream(),
                     Encoding.GetEncoding(response.CharacterSet)))
                 {
                     return reader.ReadToEnd();
@@ -82,15 +82,15 @@ namespace PLRankings.Features
         private static CompetitionResult BuildResult(string tableRow)
         {
             // 7 is the length of the <FONT> tags.
-            int substringStart = tableRow.IndexOf("<FONT >", StringComparison.Ordinal) + 7;
-            int substringLength = tableRow.LastIndexOf("</TD>", StringComparison.Ordinal) - substringStart - 7;
+            var substringStart = tableRow.IndexOf("<FONT >", StringComparison.Ordinal) + 7;
+            var substringLength = tableRow.LastIndexOf("</TD>", StringComparison.Ordinal) - substringStart - 7;
 
-            string tableData = tableRow.Substring(substringStart, substringLength);
+            var tableData = tableRow.Substring(substringStart, substringLength);
 
-            string[] tableCells = tableData.Split(new[] {"</FONT></TD><TD><FONT >"},
+            var tableCells = tableData.Split(new[] {"</FONT></TD><TD><FONT >"},
                 StringSplitOptions.RemoveEmptyEntries);
 
-            CompetitionResult result = new CompetitionResult();
+            var result = new CompetitionResult();
 
             result.ContestName = tableCells[0];
 
