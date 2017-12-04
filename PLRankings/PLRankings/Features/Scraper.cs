@@ -23,8 +23,8 @@ namespace PLRankings.Features
 
             foreach (var result in seasonResults.OrderByDescending(cr => cr.WilksPoints))
             {
-                var existingResult = topResults.SingleOrDefault(
-                    cr => string.Equals(cr.LifterName, result.LifterName, StringComparison.OrdinalIgnoreCase));
+                var existingResult =
+                    topResults.SingleOrDefault(cr => EditDistance(cr.LifterName, result.LifterName) < 2);
 
                 if (existingResult == null)
                 {
@@ -67,16 +67,14 @@ namespace PLRankings.Features
             var request = (HttpWebRequest) WebRequest.Create(resultsUri);
             var response = (HttpWebResponse) request.GetResponse();
 
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                using (var reader = new StreamReader(response.GetResponseStream(),
-                    Encoding.GetEncoding(response.CharacterSet)))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpException(response.StatusCode.ToString());
 
-            throw new HttpException();
+            using (var reader = new StreamReader(response.GetResponseStream(),
+                Encoding.GetEncoding(response.CharacterSet)))
+            {
+                return reader.ReadToEnd();
+            }
         }
 
         private static CompetitionResult BuildResult(string tableRow)
@@ -88,7 +86,7 @@ namespace PLRankings.Features
             var tableData = tableRow.Substring(substringStart, substringLength);
 
             var tableCells = tableData.Split(new[] {"</FONT></TD><TD><FONT >"},
-                StringSplitOptions.RemoveEmptyEntries);
+                StringSplitOptions.RemoveEmptyEntries).Select(tc => tc.Trim()).ToArray();
 
             var result = new CompetitionResult();
 
@@ -108,19 +106,18 @@ namespace PLRankings.Features
             result.Gender = tableCells[4];
             result.LifterName = tableCells[5];
             result.Province = tableCells[6];
-            result.Bodyweight = double.Parse(tableCells[7]);
+            double.TryParse(tableCells[7], out var bw);
+            result.Bodyweight = bw;
             // unused column for retired bodyweight classes
             result.Class = tableCells[9];
             result.AgeCategory = tableCells[10];
 
-            double squat;
-            double.TryParse(tableCells[11], out squat);
+            double.TryParse(tableCells[11], out var squat);
             result.Squat = squat;
 
             result.Bench = double.Parse(tableCells[12]);
 
-            double deadlift;
-            double.TryParse(tableCells[13], out deadlift);
+            double.TryParse(tableCells[13], out var deadlift);
             result.Deadlift = deadlift;
 
             result.Total = double.Parse(tableCells[14]);
@@ -131,6 +128,67 @@ namespace PLRankings.Features
                 result.Unequipped = true;
 
             return result;
+        }
+
+        /// <summary>Computes the Levenshtein Edit Distance between two enumerables.</summary>
+        /// <typeparam name="T">The type of the items in the enumerables.</typeparam>
+        /// <param name="x">The first enumerable.</param>
+        /// <param name="y">The second enumerable.</param>
+        /// <returns>The edit distance.</returns>
+        public static int EditDistance<T>(IEnumerable<T> x, IEnumerable<T> y)
+            where T : IEquatable<T>
+        {
+            if (x == null)
+                throw new ArgumentNullException(nameof(x));
+
+            if (y == null)
+                throw new ArgumentNullException(nameof(y));
+
+            var first = x as IList<T> ?? new List<T>(x);
+            var second = y as IList<T> ?? new List<T>(y);
+
+            int n = first.Count, m = second.Count;
+
+            if (n == 0)
+                return m;
+
+            if (m == 0)
+                return n;
+
+            int curRow = 0, nextRow = 1;
+
+            int[][] rows = {new int[m + 1], new int[m + 1]};
+
+            for (var j = 0; j <= m; ++j)
+                rows[curRow][j] = j;
+
+            for (var i = 1; i <= n; ++i)
+            {
+                rows[nextRow][0] = i;
+
+                for (var j = 1; j <= m; ++j)
+
+                {
+                    var dist1 = rows[curRow][j] + 1;
+                    var dist2 = rows[nextRow][j - 1] + 1;
+                    var dist3 = rows[curRow][j - 1] + (first[i - 1].Equals(second[j - 1]) ? 0 : 1);
+
+                    rows[nextRow][j] = Math.Min(dist1, Math.Min(dist2, dist3));
+                }
+
+                if (curRow == 0)
+                {
+                    curRow = 1;
+                    nextRow = 0;
+                }
+                else
+                {
+                    curRow = 0;
+                    nextRow = 1;
+                }
+            }
+
+            return rows[curRow][m];
         }
     }
 }
