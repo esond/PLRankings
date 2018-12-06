@@ -7,6 +7,8 @@ namespace PLRankings
 {
     public class Program
     {
+        private static readonly string Year = "2018";
+
         public static void Main(string[] args)
         {
             var path = ConfigurationManager.AppSettings["outputFilePath"];
@@ -14,33 +16,33 @@ namespace PLRankings
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            var outputFile = Path.Combine(path, "Men - Open (2017).csv");
+            var outputFile = Path.Combine(path, $"Men - Open ({Year}).csv");
 
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.OpenMen2017);
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.OpenMen2018);
 
-            outputFile = Path.Combine(path, "Women - Open (2017).csv");
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.OpenWomen2017);
+            outputFile = Path.Combine(path, $"Women - Open ({Year}).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.OpenWomen2018);
 
-            outputFile = Path.Combine(path, "Men - Junior and Sub-Junior (2017).csv");
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.JuniorMen2017);
+            outputFile = Path.Combine(path, $"Men - Junior and Sub-Junior ({Year}).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.JuniorMen2018);
 
-            outputFile = Path.Combine(path, "Women - Junior and Sub-Junior (2017).csv");
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.JuniorWomen2017);
+            outputFile = Path.Combine(path, $"Women - Junior and Sub-Junior ({Year}).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.JuniorWomen2018);
 
-            outputFile = Path.Combine(path, "Men - Masters (2017).csv");
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.MastersMen2017);
+            outputFile = Path.Combine(path, $"Men - Masters ({Year}).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.MastersMen2018);
 
-            outputFile = Path.Combine(path, "Women - Masters (2017).csv");
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.MastersWomen2017);
+            outputFile = Path.Combine(path, $"Women - Masters ({Year}).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.MastersWomen2018);
 
-            outputFile = Path.Combine(path, "Men - Bench-Only (2017).csv");
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.BenchOnlyMen2017);
+            outputFile = Path.Combine(path, $"Men - Bench-Only ({Year}).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.BenchOnlyMen2018);
 
-            outputFile = Path.Combine(path, "Women - Bench-Only (2017).csv");
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.BenchOnlyWomen2017);
+            outputFile = Path.Combine(path, $"Women - Bench-Only ({Year}).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.BenchOnlyWomen2018);
 
-            outputFile = Path.Combine(path, "Overall - Equipped (2017).csv");
-            RankingGenerator.CreateRanking(outputFile, ResultsUris.EquippedOverall2017, cr => !cr.Unequipped);
+            outputFile = Path.Combine(path, $"Overall - Equipped ({Year}).csv");
+            RankingGenerator.CreateRanking(outputFile, ResultsUris.EquippedOverall2018, cr => !cr.Unequipped);
         }
     }
 }
