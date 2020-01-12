@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CsvHelper;
 using PLRankings.Data;
-using PLRankings.Data.Contracts;
 
 namespace PLRankings.Manager
 {
@@ -18,29 +16,48 @@ namespace PLRankings.Manager
             _competitionData = competitionData;
         }
 
-        public async Task<IEnumerable<(string title, string content)>> ExportRankingsToCsvAsync(int year)
+        public async Task<IEnumerable<(string title, string content)>> ExportRankingsToCsvAsync(int year, string province)
         {
-            var results = new List<(string title, string content)>();
+            var resultsByName = new Dictionary<string, string>();
 
-            var result = await _competitionData.GetCompetitionResultsAsync(new CompetitionDataRequest
-            {
-                CompetitionType = "All",
-                Gender = "M",
-                Province = "AB",
-                AgeCategory = "Open",
-                Year = year,
-                Unequipped = true
-            });
+            var menOpenData = await _competitionData.GetMenOpenResultsAsync(year, province);
+            resultsByName.Add($"Men - Open ({year}).csv", GetCsvString(menOpenData));
 
-            using (var stringWriter = new StringWriter())
-            using (var csvWriter = new CsvWriter(stringWriter))
-            {
-                csvWriter.WriteRecords(result);
+            var menJuniorSubJuniorData = await _competitionData.GetMenJuniorAndSubJuniorResultsAsync(year, province);
+            resultsByName.Add($"Men - Junior and Sub-Junior ({year}).csv", GetCsvString(menJuniorSubJuniorData));
 
-                results.Add(($"Men - Open ({year}).csv", stringWriter.ToString()));
-            }
+            var menMasterData = await _competitionData.GetMenMasterResultsAsync(year, province);
+            resultsByName.Add($"Men - Master ({year}).csv", GetCsvString(menMasterData));
 
-            return results;
+            var menBenchOnlyData = await _competitionData.GetMenBenchOnlyResultsAsync(year, province);
+            resultsByName.Add($"Men - Bench-Only ({year}).csv", GetCsvString(menBenchOnlyData));
+
+            var womenOpenData = await _competitionData.GetWomenOpenResultsAsync(year, province);
+            resultsByName.Add($"Women - Open ({year}).csv", GetCsvString(womenOpenData));
+
+            var womenJuniorSubJuniorData = await _competitionData.GetWomenJuniorAndSubJuniorResultsAsync(year, province);
+            resultsByName.Add($"Women - Junior and Sub-Junior ({year}).csv", GetCsvString(womenJuniorSubJuniorData));
+
+            var womenMasterData = await _competitionData.GetWomenMasterResultsAsync(year, province);
+            resultsByName.Add($"Women - Master ({year}).csv", GetCsvString(womenMasterData));
+
+            var womenBenchOnlyData = await _competitionData.GetWomenBenchOnlyResultsAsync(year, province);
+            resultsByName.Add($"Women - Bench-Only ({year}).csv", GetCsvString(womenBenchOnlyData));
+
+            var overallEquippedData = await _competitionData.GetOverallEquippedResultsAsync(year, province);
+            resultsByName.Add($"Overall - Equipped ({year}).csv", GetCsvString(overallEquippedData));
+
+            return resultsByName.Select(kvp => (kvp.Key, kvp.Value));
+        }
+
+        private static string GetCsvString<T>(IEnumerable<T> records)
+        {
+            using var stringWriter = new StringWriter();
+            using var csvWriter = new CsvWriter(stringWriter);
+
+            csvWriter.WriteRecords(records);
+
+            return stringWriter.ToString();
         }
     }
 }

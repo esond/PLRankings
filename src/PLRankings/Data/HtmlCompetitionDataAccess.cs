@@ -22,6 +22,8 @@ namespace PLRankings.Data
             _httpClient = httpClient;
         }
 
+        #region Implementation of ICompetitionDataAccess
+
         public async Task<IEnumerable<CompetitionResult>> GetCompetitionResultsAsync(CompetitionDataRequest dataRequest)
         {
             using var response = await _httpClient.SendAsync(CreateHttpRequest(dataRequest));
@@ -34,7 +36,12 @@ namespace PLRankings.Data
             htmlDocument.LoadHtml(html);
 
             var resultsTableNode = htmlDocument.DocumentNode.SelectNodes("//form/table")
-                .Single(n => n.Id == "lifter_database");
+                .SingleOrDefault(n => n.Id == "lifter_database");
+
+            if (resultsTableNode == null)
+                return Enumerable.Empty<CompetitionResult>();
+
+            //TODO: Check number of results against "search resulted in" message
 
             var resultsRowNodes = resultsTableNode.ChildNodes.Skip(2).ToList();
 
@@ -63,28 +70,201 @@ namespace PLRankings.Data
             return results.OrderByDescending(cr => cr.Points);
         }
 
-        private HttpRequestMessage CreateHttpRequest(CompetitionDataRequest dataRequest)
+        public async Task<IEnumerable<CompetitionResult>> GetMenOpenResultsAsync(int year, string province)
         {
-            var formData = new Dictionary<string, string>
+            return await GetCompetitionResultsAsync(new CompetitionDataRequest
             {
-                { "style", dataRequest.CompetitionType },
-                { "gender", dataRequest.Gender },
-                { "province", dataRequest.Province },
-                { "age_category", dataRequest.AgeCategory },
-                { "weightclass_new", dataRequest.WeightClass },
-                { "year", dataRequest.Year.ToString() },
-                { "name", dataRequest.AthleteName },
-                { "unequipped", dataRequest.Unequipped.HasValue
-                    ? dataRequest.Unequipped.Value ? "yes" : "no"
-                    : null },
-                { "contest", dataRequest.ContestName },
-                { "submit", "Search" } // Required to produce search results, for some reason
+                CompetitionType = "All",
+                Gender = "M",
+                Province = province,
+                AgeCategory = "Open",
+                Year = year,
+                Unequipped = true
+            });
+        }
+
+        public async Task<IEnumerable<CompetitionResult>> GetMenJuniorAndSubJuniorResultsAsync(int year, string province)
+        {
+            var juniorResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                CompetitionType = "All",
+                Gender = "M",
+                Province = province,
+                AgeCategory = "Junior",
+                Year = year,
+                Unequipped = true
+            });
+
+            var subJuniorResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                CompetitionType = "All",
+                Gender = "M",
+                Province = province,
+                AgeCategory = "Sub-Junior",
+                Year = year,
+                Unequipped = true
+            });
+
+            return MergeResults(juniorResults, subJuniorResults);
+        }
+
+        public async Task<IEnumerable<CompetitionResult>> GetMenMasterResultsAsync(int year, string province)
+        {
+            var dataRequest = new CompetitionDataRequest
+            {
+                CompetitionType = "All",
+                Gender = "M",
+                Province = province,
+                Year = year,
+                Unequipped = true,
+                AgeCategory = "Master 1"
             };
 
+            var master1Results = await GetCompetitionResultsAsync(dataRequest);
+
+            dataRequest.AgeCategory = "Master 2";
+            var master2Results = await GetCompetitionResultsAsync(dataRequest);
+            
+            dataRequest.AgeCategory = "Master 3";
+            var master3Results = await GetCompetitionResultsAsync(dataRequest);
+
+            dataRequest.AgeCategory = "Master 4";
+            var master4Results = await GetCompetitionResultsAsync(dataRequest);
+
+            return MergeResults(master1Results, master2Results, master3Results, master4Results);
+        }
+
+        public Task<IEnumerable<CompetitionResult>> GetMenBenchOnlyResultsAsync(int year, string province)
+        {
+            return GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                CompetitionType = "Single",
+                Gender = "M",
+                Province = province,
+                Year = year,
+                Unequipped = true
+            });
+        }
+
+        public Task<IEnumerable<CompetitionResult>> GetWomenOpenResultsAsync(int year, string province)
+        {
+            return GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                CompetitionType = "All",
+                Gender = "F",
+                Province = province,
+                AgeCategory = "Open",
+                Year = year,
+                Unequipped = true
+            });
+        }
+
+        public async Task<IEnumerable<CompetitionResult>> GetWomenJuniorAndSubJuniorResultsAsync(int year, string province)
+        {
+            var juniorResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                CompetitionType = "All",
+                Gender = "F",
+                Province = province,
+                AgeCategory = "Junior",
+                Year = year,
+                Unequipped = true
+            });
+
+            var subJuniorResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                CompetitionType = "All",
+                Gender = "F",
+                Province = province,
+                AgeCategory = "Sub-Junior",
+                Year = year,
+                Unequipped = true
+            });
+
+            return MergeResults(juniorResults, subJuniorResults);
+        }
+
+        public async Task<IEnumerable<CompetitionResult>> GetWomenMasterResultsAsync(int year, string province)
+        {
+            var dataRequest = new CompetitionDataRequest
+            {
+                CompetitionType = "All",
+                Gender = "F",
+                Province = province,
+                Year = year,
+                Unequipped = true,
+                AgeCategory = "Master 1"
+            };
+
+            var master1Results = await GetCompetitionResultsAsync(dataRequest);
+
+            dataRequest.AgeCategory = "Master 2";
+            var master2Results = await GetCompetitionResultsAsync(dataRequest);
+
+            dataRequest.AgeCategory = "Master 3";
+            var master3Results = await GetCompetitionResultsAsync(dataRequest);
+
+            dataRequest.AgeCategory = "Master 4";
+            var master4Results = await GetCompetitionResultsAsync(dataRequest);
+
+            return MergeResults(master1Results, master2Results, master3Results, master4Results);
+        }
+
+        public Task<IEnumerable<CompetitionResult>> GetWomenBenchOnlyResultsAsync(int year, string province)
+        {
+            return GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                CompetitionType = "Single",
+                Gender = "F",
+                Province = province,
+                Year = year,
+                Unequipped = true
+            });
+        }
+
+        public Task<IEnumerable<CompetitionResult>> GetOverallEquippedResultsAsync(int year, string province)
+        {
+            return GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                CompetitionType = "All",
+                Province = province,
+                AgeCategory = "Open",
+                Year = year,
+                Unequipped = false
+            });
+        }
+
+        #endregion
+
+        private static HttpRequestMessage CreateHttpRequest(CompetitionDataRequest dataRequest)
+        {
             return new HttpRequestMessage(HttpMethod.Post, CpuLifterDatabaseUrl)
             {
-                Content = new FormUrlEncodedContent(formData)
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "style", dataRequest.CompetitionType },
+                    { "gender", dataRequest.Gender },
+                    { "province", dataRequest.Province },
+                    { "age_category", dataRequest.AgeCategory },
+                    { "weightclass_new", dataRequest.WeightClass },
+                    { "year", dataRequest.Year.ToString() },
+                    { "name", dataRequest.AthleteName },
+                    { "unequipped", dataRequest.Unequipped.HasValue
+                        ? dataRequest.Unequipped.Value ? "yes" : "no"
+                        : null },
+                    { "contest", dataRequest.ContestName },
+                    { "submit", "Search" } // Required to actually execute a search for some reason
+                })
             };
+        }
+
+        private static IEnumerable<CompetitionResult> MergeResults(params IEnumerable<CompetitionResult>[] resultSets)
+        {
+            var mergedSets = Enumerable.Empty<CompetitionResult>();
+
+            mergedSets = resultSets.Aggregate(mergedSets, (current, resultSet) => current.Concat(resultSet));
+
+            return mergedSets.OrderByDescending(r => r.Points);
         }
     }
 }
