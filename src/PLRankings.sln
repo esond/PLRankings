@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PLRankings.Cli", "PLRankings.Cli\PLRankings.Cli.csproj", "{BDB9BA73-5BCD-4647-ADD4-91F0C8768DA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PLRankings", "PLRankings\PLRankings.csproj", "{C330AE37-FE03-4191-9D7E-89774306A589}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDB9BA73-5BCD-4647-ADD4-91F0C8768DA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDB9BA73-5BCD-4647-ADD4-91F0C8768DA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDB9BA73-5BCD-4647-ADD4-91F0C8768DA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDB9BA73-5BCD-4647-ADD4-91F0C8768DA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C330AE37-FE03-4191-9D7E-89774306A589}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C330AE37-FE03-4191-9D7E-89774306A589}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C330AE37-FE03-4191-9D7E-89774306A589}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C330AE37-FE03-4191-9D7E-89774306A589}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F59A6B27-67AB-41C2-BD0B-CBDD8E924B85}
+	EndGlobalSection
+EndGlobal
