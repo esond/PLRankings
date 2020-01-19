@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using Newtonsoft.Json;
 using PLRankings.Data.Contracts;
 using PLRankings.Models;
 
@@ -41,7 +43,7 @@ namespace PLRankings.Data
             if (resultsTableNode == null)
                 return Enumerable.Empty<CompetitionResult>();
 
-            //TODO: Check number of results against "search resulted in" message
+            //TODO: Validate number of results against "search resulted in" message
 
             var resultsRowNodes = resultsTableNode.ChildNodes.Skip(2).ToList();
 
@@ -65,9 +67,8 @@ namespace PLRankings.Data
                 Unequipped = rrn.ChildNodes[15].InnerText == "yes"
             }).ToList();
 
-            //TODO: Dedupe based on name
-
-            return results.OrderByDescending(cr => cr.Points);
+            return SelectTopResultPerLifter(results)
+                .OrderByDescending(cr => cr.Points);
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetMenOpenResultsAsync(int year, string province)
@@ -77,7 +78,6 @@ namespace PLRankings.Data
                 CompetitionType = "All",
                 Gender = "M",
                 Province = province,
-                AgeCategory = "Open",
                 Year = year,
                 Unequipped = true
             });
@@ -153,7 +153,6 @@ namespace PLRankings.Data
                 CompetitionType = "All",
                 Gender = "F",
                 Province = province,
-                AgeCategory = "Open",
                 Year = year,
                 Unequipped = true
             });
@@ -265,6 +264,31 @@ namespace PLRankings.Data
             mergedSets = resultSets.Aggregate(mergedSets, (current, resultSet) => current.Concat(resultSet));
 
             return mergedSets.OrderByDescending(r => r.Points);
+        }
+
+        private static IEnumerable<CompetitionResult> SelectTopResultPerLifter(IEnumerable<CompetitionResult> results)
+        {
+            var bestResults = new List<CompetitionResult>();
+
+            foreach (var result in results)
+            {
+                var existingResult =
+                    bestResults.SingleOrDefault(cr => cr.AthleteName.ToLower().EditDistance(result.AthleteName.ToLower()) <= 2);
+
+                if (existingResult == null)
+                {
+                    bestResults.Add(result);
+                    continue;
+                }
+
+                if (existingResult.Points > result.Points)
+                    continue;
+
+                bestResults.Remove(existingResult);
+                bestResults.Add(result);
+            }
+
+            return bestResults;
         }
     }
 }

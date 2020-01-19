@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ namespace PLRankings.Manager
         private static string GetCsvString<T>(IEnumerable<T> records)
         {
             using var stringWriter = new StringWriter();
-            using var csvWriter = new CsvWriter(stringWriter);
+            using var csvWriter = new CsvWriter(stringWriter, CultureInfo.CurrentCulture);
 
             csvWriter.WriteRecords(records);
 
