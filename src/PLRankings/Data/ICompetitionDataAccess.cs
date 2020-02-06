@@ -26,5 +26,7 @@ namespace PLRankings.Data
         Task<IEnumerable<CompetitionResult>> GetWomenBenchOnlyResultsAsync(int year, string province);
 
         Task<IEnumerable<CompetitionResult>> GetOverallEquippedResultsAsync(int year, string province);
+
+        Task<IEnumerable<CompetitionResult>> GetInternationalResultsAsync(int year, string province);
     }
 }

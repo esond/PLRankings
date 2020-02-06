@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using Newtonsoft.Json;
 using PLRankings.Data.Contracts;
 using PLRankings.Models;
 
@@ -43,9 +41,12 @@ namespace PLRankings.Data
             if (resultsTableNode == null)
                 return Enumerable.Empty<CompetitionResult>();
 
-            //TODO: Validate number of results against "search resulted in" message
-
             var resultsRowNodes = resultsTableNode.ChildNodes.Skip(2).ToList();
+
+            double ParseDoubleOrDefault(string value)
+            {
+                return double.TryParse(value, out var result) ? result : default;
+            }
 
             var results = resultsRowNodes.Select(rrn => new CompetitionResult
             {
@@ -56,31 +57,41 @@ namespace PLRankings.Data
                 Gender = rrn.ChildNodes[4].InnerText,
                 AthleteName = rrn.ChildNodes[5].InnerText,
                 Province = rrn.ChildNodes[6].InnerText,
-                Bodyweight = double.Parse(rrn.ChildNodes[7].InnerText),
+                Bodyweight = ParseDoubleOrDefault(rrn.ChildNodes[7].InnerText),
                 WeightClass = rrn.ChildNodes[8].InnerText,
                 AgeCategory = rrn.ChildNodes[9].InnerText,
-                Squat = double.Parse(rrn.ChildNodes[10].InnerText),
-                Bench = double.Parse(rrn.ChildNodes[11].InnerText),
-                Deadlift = double.Parse(rrn.ChildNodes[12].InnerText),
-                Total = double.Parse(rrn.ChildNodes[13].InnerText),
-                Points = double.Parse(rrn.ChildNodes[14].InnerText),
+                Squat = ParseDoubleOrDefault(rrn.ChildNodes[10].InnerText),
+                Bench = ParseDoubleOrDefault(rrn.ChildNodes[11].InnerText),
+                Deadlift = ParseDoubleOrDefault(rrn.ChildNodes[12].InnerText),
+                Total = ParseDoubleOrDefault(rrn.ChildNodes[13].InnerText),
+                Points = ParseDoubleOrDefault(rrn.ChildNodes[14].InnerText),
                 Unequipped = rrn.ChildNodes[15].InnerText == "yes"
             }).ToList();
 
-            return SelectTopResultPerLifter(results)
-                .OrderByDescending(cr => cr.Points);
+            return SanitizeResults(results).OrderByDescending(cr => cr.Points);
+        }
+
+        private IEnumerable<CompetitionResult> SanitizeResults(IEnumerable<CompetitionResult> results)
+        {
+            foreach (var result in results)
+            {
+                if (result.ContestType != "All" && result.ContestType != "Single")
+                    continue;
+
+                yield return result;
+            }
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetMenOpenResultsAsync(int year, string province)
         {
-            return await GetCompetitionResultsAsync(new CompetitionDataRequest
+            return SelectTopResultPerLifter(await GetCompetitionResultsAsync(new CompetitionDataRequest
             {
                 CompetitionType = "All",
                 Gender = "M",
                 Province = province,
                 Year = year,
                 Unequipped = true
-            });
+            }));
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetMenJuniorAndSubJuniorResultsAsync(int year, string province)
@@ -105,7 +116,7 @@ namespace PLRankings.Data
                 Unequipped = true
             });
 
-            return MergeResults(juniorResults, subJuniorResults);
+            return SelectTopResultPerLifter(MergeResults(juniorResults, subJuniorResults));
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetMenMasterResultsAsync(int year, string province)
@@ -131,31 +142,31 @@ namespace PLRankings.Data
             dataRequest.AgeCategory = "Master 4";
             var master4Results = await GetCompetitionResultsAsync(dataRequest);
 
-            return MergeResults(master1Results, master2Results, master3Results, master4Results);
+            return SelectTopResultPerLifter(MergeResults(master1Results, master2Results, master3Results, master4Results));
         }
 
-        public Task<IEnumerable<CompetitionResult>> GetMenBenchOnlyResultsAsync(int year, string province)
+        public async Task<IEnumerable<CompetitionResult>> GetMenBenchOnlyResultsAsync(int year, string province)
         {
-            return GetCompetitionResultsAsync(new CompetitionDataRequest
+            return SelectTopResultPerLifter(await GetCompetitionResultsAsync(new CompetitionDataRequest
             {
                 CompetitionType = "Single",
                 Gender = "M",
                 Province = province,
                 Year = year,
                 Unequipped = true
-            });
+            }));
         }
 
-        public Task<IEnumerable<CompetitionResult>> GetWomenOpenResultsAsync(int year, string province)
+        public async Task<IEnumerable<CompetitionResult>> GetWomenOpenResultsAsync(int year, string province)
         {
-            return GetCompetitionResultsAsync(new CompetitionDataRequest
+            return SelectTopResultPerLifter(await GetCompetitionResultsAsync(new CompetitionDataRequest
             {
                 CompetitionType = "All",
                 Gender = "F",
                 Province = province,
                 Year = year,
                 Unequipped = true
-            });
+            }));
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetWomenJuniorAndSubJuniorResultsAsync(int year, string province)
@@ -180,7 +191,7 @@ namespace PLRankings.Data
                 Unequipped = true
             });
 
-            return MergeResults(juniorResults, subJuniorResults);
+            return SelectTopResultPerLifter(MergeResults(juniorResults, subJuniorResults));
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetWomenMasterResultsAsync(int year, string province)
@@ -206,7 +217,7 @@ namespace PLRankings.Data
             dataRequest.AgeCategory = "Master 4";
             var master4Results = await GetCompetitionResultsAsync(dataRequest);
 
-            return MergeResults(master1Results, master2Results, master3Results, master4Results);
+            return SelectTopResultPerLifter(MergeResults(master1Results, master2Results, master3Results, master4Results));
         }
 
         public Task<IEnumerable<CompetitionResult>> GetWomenBenchOnlyResultsAsync(int year, string province)
@@ -221,16 +232,50 @@ namespace PLRankings.Data
             });
         }
 
-        public Task<IEnumerable<CompetitionResult>> GetOverallEquippedResultsAsync(int year, string province)
+        public async Task<IEnumerable<CompetitionResult>> GetOverallEquippedResultsAsync(int year, string province)
         {
-            return GetCompetitionResultsAsync(new CompetitionDataRequest
+            return SelectTopResultPerLifter(await GetCompetitionResultsAsync(new CompetitionDataRequest
             {
                 CompetitionType = "All",
                 Province = province,
                 AgeCategory = "Open",
                 Year = year,
                 Unequipped = false
+            }));
+        }
+
+        public async Task<IEnumerable<CompetitionResult>> GetInternationalResultsAsync(int year, string province)
+        {
+            var allInternationalResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            {
+                Year = year,
+                Province = "CAN"
             });
+
+            foreach (var internationalResult in SelectTopResultPerLifter(allInternationalResults))
+            {
+                await Task.Delay(500);
+
+                var individualCompetitionResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+                {
+                    AthleteName = internationalResult.AthleteName
+                });
+
+                var mostRecentProvincialResult = individualCompetitionResults
+                    .Where(r => r.Province != "CAN")
+                    .OrderByDescending(r => r.Date)
+                    .FirstOrDefault();
+
+                if (mostRecentProvincialResult == null)
+                {
+                    Console.WriteLine($"{internationalResult.AthleteName} has no provincial results!");
+                    continue;
+                }
+
+                Console.WriteLine($"{internationalResult.AthleteName} is a {mostRecentProvincialResult.Province} lifter.");
+            }
+
+            return allInternationalResults;
         }
 
         #endregion
@@ -246,7 +291,7 @@ namespace PLRankings.Data
                     { "province", dataRequest.Province },
                     { "age_category", dataRequest.AgeCategory },
                     { "weightclass_new", dataRequest.WeightClass },
-                    { "year", dataRequest.Year.ToString() },
+                    { "year", dataRequest.Year.HasValue ? dataRequest.Year.ToString() : null },
                     { "name", dataRequest.AthleteName },
                     { "unequipped", dataRequest.Unequipped.HasValue
                         ? dataRequest.Unequipped.Value ? "yes" : "no"

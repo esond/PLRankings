@@ -12,7 +12,7 @@
 
         public string WeightClass { get; set; }
 
-        public int Year { get; set; }
+        public int? Year { get; set; }
 
         public string AthleteName { get; set; }
 
