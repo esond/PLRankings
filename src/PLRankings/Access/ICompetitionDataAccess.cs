@@ -1,14 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using PLRankings.Data.Contracts;
 using PLRankings.Models;
 
-namespace PLRankings.Data
+namespace PLRankings.Access
 {
     public interface ICompetitionDataAccess
     {
-        Task<IEnumerable<CompetitionResult>> GetCompetitionResultsAsync(CompetitionDataRequest dataRequest);
-
         Task<IEnumerable<CompetitionResult>> GetMenOpenResultsAsync(int year, string province);
         
         Task<IEnumerable<CompetitionResult>> GetMenJuniorAndSubJuniorResultsAsync(int year, string province);

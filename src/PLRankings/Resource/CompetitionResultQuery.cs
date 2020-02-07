@@ -1,6 +1,6 @@
-﻿namespace PLRankings.Data.Contracts
+﻿namespace PLRankings.Resource
 {
-    public class CompetitionDataRequest
+    public class CompetitionResultQuery
     {
         public string CompetitionType { get; set; }
 

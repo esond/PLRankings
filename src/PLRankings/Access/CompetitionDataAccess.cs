@@ -1,75 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
-using PLRankings.Data.Contracts;
 using PLRankings.Models;
+using PLRankings.Resource;
 
-namespace PLRankings.Data
+namespace PLRankings.Access
 {
     public class HtmlCompetitionDataAccess : ICompetitionDataAccess
     {
-        //TODO: move to config
-        private const string CpuLifterDatabaseUrl =
-            "http://www.powerlifting.ca/cpu/index.php/competitors/lifter-database";
+        private readonly ICompetitionDatabase _database;
 
-        private readonly HttpClient _httpClient;
-
-        public HtmlCompetitionDataAccess(HttpClient httpClient)
+        public HtmlCompetitionDataAccess(ICompetitionDatabase database)
         {
-            _httpClient = httpClient;
+            _database = database;
         }
 
         #region Implementation of ICompetitionDataAccess
-
-        public async Task<IEnumerable<CompetitionResult>> GetCompetitionResultsAsync(CompetitionDataRequest dataRequest)
-        {
-            using var response = await _httpClient.SendAsync(CreateHttpRequest(dataRequest));
-
-            response.EnsureSuccessStatusCode();
-
-            var html = await response.Content.ReadAsStringAsync();
-
-            var htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(html);
-
-            var resultsTableNode = htmlDocument.DocumentNode.SelectNodes("//form/table")
-                .SingleOrDefault(n => n.Id == "lifter_database");
-
-            if (resultsTableNode == null)
-                return Enumerable.Empty<CompetitionResult>();
-
-            var resultsRowNodes = resultsTableNode.ChildNodes.Skip(2).ToList();
-
-            double ParseDoubleOrDefault(string value)
-            {
-                return double.TryParse(value, out var result) ? result : default;
-            }
-
-            var results = resultsRowNodes.Select(rrn => new CompetitionResult
-            {
-                ContestName = rrn.ChildNodes[0].InnerText,
-                Date = DateTime.Parse(rrn.ChildNodes[1].InnerText),
-                Location = rrn.ChildNodes[2].InnerText,
-                ContestType = rrn.ChildNodes[3].InnerText,
-                Gender = rrn.ChildNodes[4].InnerText,
-                AthleteName = rrn.ChildNodes[5].InnerText,
-                Province = rrn.ChildNodes[6].InnerText,
-                Bodyweight = ParseDoubleOrDefault(rrn.ChildNodes[7].InnerText),
-                WeightClass = rrn.ChildNodes[8].InnerText,
-                AgeCategory = rrn.ChildNodes[9].InnerText,
-                Squat = ParseDoubleOrDefault(rrn.ChildNodes[10].InnerText),
-                Bench = ParseDoubleOrDefault(rrn.ChildNodes[11].InnerText),
-                Deadlift = ParseDoubleOrDefault(rrn.ChildNodes[12].InnerText),
-                Total = ParseDoubleOrDefault(rrn.ChildNodes[13].InnerText),
-                Points = ParseDoubleOrDefault(rrn.ChildNodes[14].InnerText),
-                Unequipped = rrn.ChildNodes[15].InnerText == "yes"
-            }).ToList();
-
-            return SanitizeResults(results).OrderByDescending(cr => cr.Points);
-        }
 
         private IEnumerable<CompetitionResult> SanitizeResults(IEnumerable<CompetitionResult> results)
         {
@@ -84,7 +31,7 @@ namespace PLRankings.Data
 
         public async Task<IEnumerable<CompetitionResult>> GetMenOpenResultsAsync(int year, string province)
         {
-            return SelectTopResultPerLifter(await GetCompetitionResultsAsync(new CompetitionDataRequest
+            return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Gender = "M",
@@ -96,7 +43,7 @@ namespace PLRankings.Data
 
         public async Task<IEnumerable<CompetitionResult>> GetMenJuniorAndSubJuniorResultsAsync(int year, string province)
         {
-            var juniorResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            var juniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Gender = "M",
@@ -106,7 +53,7 @@ namespace PLRankings.Data
                 Unequipped = true
             });
 
-            var subJuniorResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            var subJuniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Gender = "M",
@@ -121,7 +68,7 @@ namespace PLRankings.Data
 
         public async Task<IEnumerable<CompetitionResult>> GetMenMasterResultsAsync(int year, string province)
         {
-            var dataRequest = new CompetitionDataRequest
+            var dataRequest = new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Gender = "M",
@@ -131,23 +78,23 @@ namespace PLRankings.Data
                 AgeCategory = "Master 1"
             };
 
-            var master1Results = await GetCompetitionResultsAsync(dataRequest);
+            var master1Results = await _database.QueryAsync(dataRequest);
 
             dataRequest.AgeCategory = "Master 2";
-            var master2Results = await GetCompetitionResultsAsync(dataRequest);
+            var master2Results = await _database.QueryAsync(dataRequest);
             
             dataRequest.AgeCategory = "Master 3";
-            var master3Results = await GetCompetitionResultsAsync(dataRequest);
+            var master3Results = await _database.QueryAsync(dataRequest);
 
             dataRequest.AgeCategory = "Master 4";
-            var master4Results = await GetCompetitionResultsAsync(dataRequest);
+            var master4Results = await _database.QueryAsync(dataRequest);
 
             return SelectTopResultPerLifter(MergeResults(master1Results, master2Results, master3Results, master4Results));
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetMenBenchOnlyResultsAsync(int year, string province)
         {
-            return SelectTopResultPerLifter(await GetCompetitionResultsAsync(new CompetitionDataRequest
+            return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "Single",
                 Gender = "M",
@@ -159,7 +106,7 @@ namespace PLRankings.Data
 
         public async Task<IEnumerable<CompetitionResult>> GetWomenOpenResultsAsync(int year, string province)
         {
-            return SelectTopResultPerLifter(await GetCompetitionResultsAsync(new CompetitionDataRequest
+            return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Gender = "F",
@@ -171,7 +118,7 @@ namespace PLRankings.Data
 
         public async Task<IEnumerable<CompetitionResult>> GetWomenJuniorAndSubJuniorResultsAsync(int year, string province)
         {
-            var juniorResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            var juniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Gender = "F",
@@ -181,7 +128,7 @@ namespace PLRankings.Data
                 Unequipped = true
             });
 
-            var subJuniorResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            var subJuniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Gender = "F",
@@ -196,7 +143,7 @@ namespace PLRankings.Data
 
         public async Task<IEnumerable<CompetitionResult>> GetWomenMasterResultsAsync(int year, string province)
         {
-            var dataRequest = new CompetitionDataRequest
+            var dataRequest = new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Gender = "F",
@@ -206,23 +153,23 @@ namespace PLRankings.Data
                 AgeCategory = "Master 1"
             };
 
-            var master1Results = await GetCompetitionResultsAsync(dataRequest);
+            var master1Results = await _database.QueryAsync(dataRequest);
 
             dataRequest.AgeCategory = "Master 2";
-            var master2Results = await GetCompetitionResultsAsync(dataRequest);
+            var master2Results = await _database.QueryAsync(dataRequest);
 
             dataRequest.AgeCategory = "Master 3";
-            var master3Results = await GetCompetitionResultsAsync(dataRequest);
+            var master3Results = await _database.QueryAsync(dataRequest);
 
             dataRequest.AgeCategory = "Master 4";
-            var master4Results = await GetCompetitionResultsAsync(dataRequest);
+            var master4Results = await _database.QueryAsync(dataRequest);
 
             return SelectTopResultPerLifter(MergeResults(master1Results, master2Results, master3Results, master4Results));
         }
 
         public Task<IEnumerable<CompetitionResult>> GetWomenBenchOnlyResultsAsync(int year, string province)
         {
-            return GetCompetitionResultsAsync(new CompetitionDataRequest
+            return _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "Single",
                 Gender = "F",
@@ -234,7 +181,7 @@ namespace PLRankings.Data
 
         public async Task<IEnumerable<CompetitionResult>> GetOverallEquippedResultsAsync(int year, string province)
         {
-            return SelectTopResultPerLifter(await GetCompetitionResultsAsync(new CompetitionDataRequest
+            return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = "All",
                 Province = province,
@@ -246,7 +193,7 @@ namespace PLRankings.Data
 
         public async Task<IEnumerable<CompetitionResult>> GetInternationalResultsAsync(int year, string province)
         {
-            var allInternationalResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+            var allInternationalResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 Year = year,
                 Province = "CAN"
@@ -256,7 +203,7 @@ namespace PLRankings.Data
             {
                 await Task.Delay(500);
 
-                var individualCompetitionResults = await GetCompetitionResultsAsync(new CompetitionDataRequest
+                var individualCompetitionResults = await _database.QueryAsync(new CompetitionResultQuery
                 {
                     AthleteName = internationalResult.AthleteName
                 });
@@ -279,28 +226,6 @@ namespace PLRankings.Data
         }
 
         #endregion
-
-        private static HttpRequestMessage CreateHttpRequest(CompetitionDataRequest dataRequest)
-        {
-            return new HttpRequestMessage(HttpMethod.Post, CpuLifterDatabaseUrl)
-            {
-                Content = new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    { "style", dataRequest.CompetitionType },
-                    { "gender", dataRequest.Gender },
-                    { "province", dataRequest.Province },
-                    { "age_category", dataRequest.AgeCategory },
-                    { "weightclass_new", dataRequest.WeightClass },
-                    { "year", dataRequest.Year.HasValue ? dataRequest.Year.ToString() : null },
-                    { "name", dataRequest.AthleteName },
-                    { "unequipped", dataRequest.Unequipped.HasValue
-                        ? dataRequest.Unequipped.Value ? "yes" : "no"
-                        : null },
-                    { "contest", dataRequest.ContestName },
-                    { "submit", "Search" } // Required to actually execute a search for some reason
-                })
-            };
-        }
 
         private static IEnumerable<CompetitionResult> MergeResults(params IEnumerable<CompetitionResult>[] resultSets)
         {

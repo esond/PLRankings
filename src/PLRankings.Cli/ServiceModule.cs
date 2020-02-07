@@ -1,7 +1,8 @@
 ﻿using System.Net.Http;
 using Ninject.Modules;
-using PLRankings.Data;
+using PLRankings.Access;
 using PLRankings.Manager;
+using PLRankings.Resource;
 
 namespace PLRankings.Cli
 {
@@ -11,6 +12,7 @@ namespace PLRankings.Cli
         {
             Bind<IRankingManager>().To<RankingManager>();
             Bind<ICompetitionDataAccess>().To<HtmlCompetitionDataAccess>();
+            Bind<ICompetitionDatabase>().To<HtmlCompetitionDatabase>();
 
             Bind<HttpClient>().ToSelf().InSingletonScope();
         }
