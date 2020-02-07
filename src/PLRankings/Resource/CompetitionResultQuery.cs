@@ -1,8 +1,10 @@
-﻿namespace PLRankings.Resource
+﻿using PLRankings.Models;
+
+namespace PLRankings.Resource
 {
     public class CompetitionResultQuery
     {
-        public string CompetitionType { get; set; }
+        public CompetitionType CompetitionType { get; set; }
 
         public string Gender { get; set; }
 

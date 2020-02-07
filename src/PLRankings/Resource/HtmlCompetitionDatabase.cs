@@ -52,7 +52,12 @@ namespace PLRankings.Resource
                 ContestName = rrn.ChildNodes[0].InnerText,
                 Date = DateTime.Parse(rrn.ChildNodes[1].InnerText),
                 Location = rrn.ChildNodes[2].InnerText,
-                ContestType = rrn.ChildNodes[3].InnerText,
+                CompetitionType = rrn.ChildNodes[3].InnerText switch
+                {
+                    "All" => CompetitionType.ThreeLift,
+                    "Single" => CompetitionType.BenchOnly,
+                    _ => CompetitionType.Unknown
+                },
                 Gender = rrn.ChildNodes[4].InnerText,
                 AthleteName = rrn.ChildNodes[5].InnerText,
                 Province = rrn.ChildNodes[6].InnerText,
@@ -78,7 +83,12 @@ namespace PLRankings.Resource
             {
                 Content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
-                    { "style", resultQuery.CompetitionType },
+                    { "style", resultQuery.CompetitionType switch
+                    {
+                        CompetitionType.BenchOnly => "single",
+                        CompetitionType.ThreeLift => "all",
+                        _ => null
+                    }},
                     { "gender", resultQuery.Gender },
                     { "province", resultQuery.Province },
                     { "age_category", resultQuery.AgeCategory },

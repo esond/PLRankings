@@ -20,20 +20,14 @@ namespace PLRankings.Access
 
         private IEnumerable<CompetitionResult> SanitizeResults(IEnumerable<CompetitionResult> results)
         {
-            foreach (var result in results)
-            {
-                if (result.ContestType != "All" && result.ContestType != "Single")
-                    continue;
-
-                yield return result;
-            }
+            return results.Where(result => result.CompetitionType != CompetitionType.Unknown);
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetMenOpenResultsAsync(int year, string province)
         {
             return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Gender = "M",
                 Province = province,
                 Year = year,
@@ -45,7 +39,7 @@ namespace PLRankings.Access
         {
             var juniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Gender = "M",
                 Province = province,
                 AgeCategory = "Junior",
@@ -55,7 +49,7 @@ namespace PLRankings.Access
 
             var subJuniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Gender = "M",
                 Province = province,
                 AgeCategory = "Sub-Junior",
@@ -70,7 +64,7 @@ namespace PLRankings.Access
         {
             var dataRequest = new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Gender = "M",
                 Province = province,
                 Year = year,
@@ -96,7 +90,7 @@ namespace PLRankings.Access
         {
             return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "Single",
+                CompetitionType = CompetitionType.BenchOnly,
                 Gender = "M",
                 Province = province,
                 Year = year,
@@ -108,7 +102,7 @@ namespace PLRankings.Access
         {
             return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Gender = "F",
                 Province = province,
                 Year = year,
@@ -120,7 +114,7 @@ namespace PLRankings.Access
         {
             var juniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Gender = "F",
                 Province = province,
                 AgeCategory = "Junior",
@@ -130,7 +124,7 @@ namespace PLRankings.Access
 
             var subJuniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Gender = "F",
                 Province = province,
                 AgeCategory = "Sub-Junior",
@@ -145,7 +139,7 @@ namespace PLRankings.Access
         {
             var dataRequest = new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Gender = "F",
                 Province = province,
                 Year = year,
@@ -171,7 +165,7 @@ namespace PLRankings.Access
         {
             return _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "Single",
+                CompetitionType = CompetitionType.BenchOnly,
                 Gender = "F",
                 Province = province,
                 Year = year,
@@ -183,7 +177,7 @@ namespace PLRankings.Access
         {
             return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
-                CompetitionType = "All",
+                CompetitionType = CompetitionType.ThreeLift,
                 Province = province,
                 AgeCategory = "Open",
                 Year = year,

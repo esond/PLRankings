@@ -10,7 +10,7 @@ namespace PLRankings.Models
 
         public string Location { get; set; }
 
-        public string ContestType { get; set; }
+        public CompetitionType CompetitionType { get; set; }
 
         public string Gender { get; set; }
 
