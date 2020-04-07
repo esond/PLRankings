@@ -10,17 +10,17 @@ namespace PLRankings.Models
 
         public string Location { get; set; }
 
-        public string ContestType { get; set; }
+        public CompetitionType CompetitionType { get; set; }
 
         public string Gender { get; set; }
 
-        public string LifterName { get; set; }
+        public string AthleteName { get; set; }
 
         public string Province { get; set; }
 
         public double Bodyweight { get; set; }
 
-        public string Class { get; set; }
+        public string WeightClass { get; set; }
 
         public string AgeCategory { get; set; }
 
@@ -32,9 +32,7 @@ namespace PLRankings.Models
 
         public double Total { get; set; }
 
-        public double WilksPoints { get; set; }
-
-        public string Year { get; set; }
+        public double Points { get; set; }
 
         public bool Unequipped { get; set; }
     }
