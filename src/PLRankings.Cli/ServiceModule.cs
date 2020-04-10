@@ -12,8 +12,7 @@ namespace PLRankings.Cli
         {
             Bind<IRankingManager>().To<RankingManager>();
             Bind<ICompetitionDataAccess>().To<CompetitionDataAccess>();
-            //Bind<ICompetitionDatabase>().To<HtmlCompetitionDatabase>();
-            Bind<ICompetitionDatabase>().To<OpenPowerliftingCompetitionDatabase>();
+            Bind<ICompetitionDatabase>().To<HtmlCompetitionDatabase>();
 
             Bind<HttpClient>().ToSelf().InSingletonScope();
         }

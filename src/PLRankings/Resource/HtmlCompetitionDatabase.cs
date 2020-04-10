@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -50,7 +51,7 @@ namespace PLRankings.Resource
             var results = resultsRowNodes.Select(rrn => new CompetitionResult
             {
                 ContestName = rrn.ChildNodes[0].InnerText,
-                Date = DateTime.Parse(rrn.ChildNodes[1].InnerText),
+                Date = DateTime.ParseExact(rrn.ChildNodes[1].InnerText, new []{"dd-MMM-yy", "d-MMM-yy" }, new DateTimeFormatInfo()),
                 Location = rrn.ChildNodes[2].InnerText,
                 CompetitionType = rrn.ChildNodes[3].InnerText switch
                 {
@@ -73,8 +74,8 @@ namespace PLRankings.Resource
                 Points = ParseDoubleOrDefault(rrn.ChildNodes[14].InnerText),
                 Equipment = rrn.ChildNodes[15].InnerText switch
                 {
-                    "no" => Equipment.Raw,
-                    "yes" => Equipment.SinglePly,
+                    "no" => Equipment.SinglePly,
+                    "yes" => Equipment.Raw,
                     _ => throw new ArgumentException($"Unknown equipment type '{rrn.ChildNodes[15].InnerText}.")
                 }
             }).ToList();

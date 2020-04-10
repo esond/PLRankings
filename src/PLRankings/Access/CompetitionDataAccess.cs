@@ -18,14 +18,9 @@ namespace PLRankings.Access
 
         #region Implementation of ICompetitionDataAccess
 
-        private IEnumerable<CompetitionResult> SanitizeResults(IEnumerable<CompetitionResult> results)
-        {
-            return results.Where(result => result.CompetitionType != CompetitionType.Unknown);
-        }
-
         public async Task<IEnumerable<CompetitionResult>> GetMenOpenResultsAsync(int year, string province)
         {
-            return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
+            var results = SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
                 Sex = Sex.Male,
@@ -33,6 +28,8 @@ namespace PLRankings.Access
                 Year = year,
                 Equipment = Equipment.Raw
             }));
+
+            return results;
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetMenJuniorAndSubJuniorResultsAsync(int year, string province)
@@ -195,8 +192,6 @@ namespace PLRankings.Access
 
             foreach (var internationalResult in SelectTopResultPerLifter(allInternationalResults))
             {
-                await Task.Delay(500);
-
                 var individualCompetitionResults = await _database.QueryAsync(new CompetitionResultQuery
                 {
                     AthleteName = internationalResult.AthleteName
