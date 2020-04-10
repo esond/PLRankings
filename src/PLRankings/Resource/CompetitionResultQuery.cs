@@ -6,7 +6,7 @@ namespace PLRankings.Resource
     {
         public CompetitionType CompetitionType { get; set; }
 
-        public string Gender { get; set; }
+        public Sex Sex { get; set; }
 
         public string Province { get; set; }
 
@@ -20,6 +20,6 @@ namespace PLRankings.Resource
 
         public string ContestName { get; set; }
 
-        public bool? Unequipped { get; set; } 
+        public Equipment? Equipment { get; set; } 
     }
 }

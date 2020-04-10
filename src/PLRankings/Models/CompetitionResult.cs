@@ -12,7 +12,7 @@ namespace PLRankings.Models
 
         public CompetitionType CompetitionType { get; set; }
 
-        public string Gender { get; set; }
+        public Sex Sex { get; set; }
 
         public string AthleteName { get; set; }
 
@@ -34,6 +34,6 @@ namespace PLRankings.Models
 
         public double Points { get; set; }
 
-        public bool Unequipped { get; set; }
+        public Equipment Equipment { get; set; }
     }
 }

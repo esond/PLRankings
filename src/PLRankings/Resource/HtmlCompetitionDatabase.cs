@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -50,7 +51,7 @@ namespace PLRankings.Resource
             var results = resultsRowNodes.Select(rrn => new CompetitionResult
             {
                 ContestName = rrn.ChildNodes[0].InnerText,
-                Date = DateTime.Parse(rrn.ChildNodes[1].InnerText),
+                Date = DateTime.ParseExact(rrn.ChildNodes[1].InnerText, new []{"dd-MMM-yy", "d-MMM-yy" }, new DateTimeFormatInfo()),
                 Location = rrn.ChildNodes[2].InnerText,
                 CompetitionType = rrn.ChildNodes[3].InnerText switch
                 {
@@ -58,8 +59,10 @@ namespace PLRankings.Resource
                     "Single" => CompetitionType.BenchOnly,
                     _ => CompetitionType.Unknown
                 },
-                Gender = rrn.ChildNodes[4].InnerText,
-                AthleteName = rrn.ChildNodes[5].InnerText,
+                Sex = rrn.ChildNodes[4].InnerText == "M" ? Sex.Male : Sex.Female,
+                AthleteName = AliasDictionary.Aliases.TryGetValue(rrn.ChildNodes[5].InnerText, out var realName)
+                    ? realName
+                    : rrn.ChildNodes[5].InnerText,
                 Province = rrn.ChildNodes[6].InnerText,
                 Bodyweight = ParseDoubleOrDefault(rrn.ChildNodes[7].InnerText),
                 WeightClass = rrn.ChildNodes[8].InnerText,
@@ -69,10 +72,15 @@ namespace PLRankings.Resource
                 Deadlift = ParseDoubleOrDefault(rrn.ChildNodes[12].InnerText),
                 Total = ParseDoubleOrDefault(rrn.ChildNodes[13].InnerText),
                 Points = ParseDoubleOrDefault(rrn.ChildNodes[14].InnerText),
-                Unequipped = rrn.ChildNodes[15].InnerText == "yes"
+                Equipment = rrn.ChildNodes[15].InnerText switch
+                {
+                    "no" => Equipment.SinglePly,
+                    "yes" => Equipment.Raw,
+                    _ => throw new ArgumentException($"Unknown equipment type '{rrn.ChildNodes[15].InnerText}.")
+                }
             }).ToList();
 
-            return results.ToArray();
+            return results.OrderByDescending(r => r.Points).ToArray();
         }
 
         #endregion
@@ -89,14 +97,14 @@ namespace PLRankings.Resource
                         CompetitionType.ThreeLift => "all",
                         _ => null
                     }},
-                    { "gender", resultQuery.Gender },
+                    { "gender", resultQuery.Sex == Sex.Male ? "M" : "F" },
                     { "province", resultQuery.Province },
                     { "age_category", resultQuery.AgeCategory },
                     { "weightclass_new", resultQuery.WeightClass },
                     { "year", resultQuery.Year.HasValue ? resultQuery.Year.ToString() : null },
                     { "name", resultQuery.AthleteName },
-                    { "unequipped", resultQuery.Unequipped.HasValue
-                        ? resultQuery.Unequipped.Value ? "yes" : "no"
+                    { "unequipped", resultQuery.Equipment.HasValue
+                        ? resultQuery.Equipment == Equipment.Raw ? "yes" : "no"
                         : null },
                     { "contest", resultQuery.ContestName },
                     { "submit", "Search" } // Required to actually execute a search for some reason

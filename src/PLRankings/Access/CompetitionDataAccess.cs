@@ -7,32 +7,29 @@ using PLRankings.Resource;
 
 namespace PLRankings.Access
 {
-    public class HtmlCompetitionDataAccess : ICompetitionDataAccess
+    public class CompetitionDataAccess : ICompetitionDataAccess
     {
         private readonly ICompetitionDatabase _database;
 
-        public HtmlCompetitionDataAccess(ICompetitionDatabase database)
+        public CompetitionDataAccess(ICompetitionDatabase database)
         {
             _database = database;
         }
 
         #region Implementation of ICompetitionDataAccess
 
-        private IEnumerable<CompetitionResult> SanitizeResults(IEnumerable<CompetitionResult> results)
-        {
-            return results.Where(result => result.CompetitionType != CompetitionType.Unknown);
-        }
-
         public async Task<IEnumerable<CompetitionResult>> GetMenOpenResultsAsync(int year, string province)
         {
-            return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
+            var results = SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
-                Gender = "M",
+                Sex = Sex.Male,
                 Province = province,
                 Year = year,
-                Unequipped = true
+                Equipment = Equipment.Raw
             }));
+
+            return results;
         }
 
         public async Task<IEnumerable<CompetitionResult>> GetMenJuniorAndSubJuniorResultsAsync(int year, string province)
@@ -40,21 +37,21 @@ namespace PLRankings.Access
             var juniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
-                Gender = "M",
+                Sex = Sex.Male,
                 Province = province,
                 AgeCategory = "Junior",
                 Year = year,
-                Unequipped = true
+                Equipment = Equipment.Raw
             });
 
             var subJuniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
-                Gender = "M",
+                Sex = Sex.Male,
                 Province = province,
                 AgeCategory = "Sub-Junior",
                 Year = year,
-                Unequipped = true
+                Equipment = Equipment.Raw
             });
 
             return SelectTopResultPerLifter(MergeResults(juniorResults, subJuniorResults));
@@ -65,10 +62,10 @@ namespace PLRankings.Access
             var dataRequest = new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
-                Gender = "M",
+                Sex = Sex.Male,
                 Province = province,
                 Year = year,
-                Unequipped = true,
+                Equipment = Equipment.Raw,
                 AgeCategory = "Master 1"
             };
 
@@ -91,10 +88,10 @@ namespace PLRankings.Access
             return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.BenchOnly,
-                Gender = "M",
+                Sex = Sex.Male,
                 Province = province,
                 Year = year,
-                Unequipped = true
+                Equipment = Equipment.Raw
             }));
         }
 
@@ -103,10 +100,10 @@ namespace PLRankings.Access
             return SelectTopResultPerLifter(await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
-                Gender = "F",
+                Sex = Sex.Female,
                 Province = province,
                 Year = year,
-                Unequipped = true
+                Equipment = Equipment.Raw
             }));
         }
 
@@ -115,21 +112,21 @@ namespace PLRankings.Access
             var juniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
-                Gender = "F",
+                Sex = Sex.Female,
                 Province = province,
                 AgeCategory = "Junior",
                 Year = year,
-                Unequipped = true
+                Equipment = Equipment.Raw
             });
 
             var subJuniorResults = await _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
-                Gender = "F",
+                Sex = Sex.Female,
                 Province = province,
                 AgeCategory = "Sub-Junior",
                 Year = year,
-                Unequipped = true
+                Equipment = Equipment.Raw
             });
 
             return SelectTopResultPerLifter(MergeResults(juniorResults, subJuniorResults));
@@ -140,10 +137,10 @@ namespace PLRankings.Access
             var dataRequest = new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.ThreeLift,
-                Gender = "F",
+                Sex = Sex.Female,
                 Province = province,
                 Year = year,
-                Unequipped = true,
+                Equipment = Equipment.Raw,
                 AgeCategory = "Master 1"
             };
 
@@ -166,10 +163,10 @@ namespace PLRankings.Access
             return _database.QueryAsync(new CompetitionResultQuery
             {
                 CompetitionType = CompetitionType.BenchOnly,
-                Gender = "F",
+                Sex = Sex.Female,
                 Province = province,
                 Year = year,
-                Unequipped = true
+                Equipment = Equipment.Raw
             });
         }
 
@@ -181,7 +178,7 @@ namespace PLRankings.Access
                 Province = province,
                 AgeCategory = "Open",
                 Year = year,
-                Unequipped = false
+                Equipment = Equipment.SinglePly
             }));
         }
 
@@ -195,8 +192,6 @@ namespace PLRankings.Access
 
             foreach (var internationalResult in SelectTopResultPerLifter(allInternationalResults))
             {
-                await Task.Delay(500);
-
                 var individualCompetitionResults = await _database.QueryAsync(new CompetitionResultQuery
                 {
                     AthleteName = internationalResult.AthleteName
@@ -237,7 +232,7 @@ namespace PLRankings.Access
             foreach (var result in results)
             {
                 var existingResult =
-                    bestResults.SingleOrDefault(cr => cr.AthleteName.ToLower().EditDistance(result.AthleteName.ToLower()) <= 2);
+                    bestResults.FirstOrDefault(cr => cr.AthleteName.ToLower().EditDistance(result.AthleteName.ToLower()) <= 2);
 
                 if (existingResult == null)
                 {

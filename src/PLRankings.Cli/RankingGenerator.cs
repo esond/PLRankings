@@ -7,8 +7,6 @@ namespace PLRankings.Cli
 {
     public class RankingGenerator
     {
-        private const string OutputDirectory = "C:\\temp\\rankings.rawdata";
-        private const int CompetitionYear = 2019;
 
         private readonly IRankingManager _rankingManager;
 
@@ -17,22 +15,22 @@ namespace PLRankings.Cli
             _rankingManager = rankingManager;
         }
 
-        public async Task RunAsync()
+        public async Task RunAsync(int competitionYear, string province, string outputDirectory)
         {
-            Console.WriteLine($"Creating rankings for year {CompetitionYear}...");
+            Console.WriteLine($"Creating rankings for year {competitionYear}...");
 
-            var files = await _rankingManager.ExportRankingsToCsvAsync(CompetitionYear, "AB");
+            var files = await _rankingManager.ExportRankingsToCsvAsync(competitionYear, province);
 
             foreach (var (title, content) in files)
             {
-                var fileName = $"{OutputDirectory}\\{title}";
+                var fileName = $"{outputDirectory}\\{title}";
 
                 Console.WriteLine($"Saving {fileName}...");
 
                 await File.WriteAllTextAsync(fileName, content);
             }
 
-            Console.WriteLine($"Rankings saved to {OutputDirectory}");
+            Console.WriteLine($"Rankings saved to {outputDirectory}");
         }
     }
 }

@@ -11,7 +11,7 @@ namespace PLRankings.Cli
         public override void Load()
         {
             Bind<IRankingManager>().To<RankingManager>();
-            Bind<ICompetitionDataAccess>().To<HtmlCompetitionDataAccess>();
+            Bind<ICompetitionDataAccess>().To<CompetitionDataAccess>();
             Bind<ICompetitionDatabase>().To<HtmlCompetitionDatabase>();
 
             Bind<HttpClient>().ToSelf().InSingletonScope();
